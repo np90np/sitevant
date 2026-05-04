@@ -10,7 +10,6 @@ import Chip from '@mui/material/Chip';
 import Avatar from '@mui/material/Avatar';
 import Stack from '@mui/material/Stack';
 import Skeleton from '@mui/material/Skeleton';
-import LinearProgress from '@mui/material/LinearProgress';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import AssignmentIcon from '@mui/icons-material/Assignment';
@@ -130,62 +129,42 @@ export default function EmployeeDashboard() {
             <Stack spacing={1.5}>
               <Skeleton height={20} />
               <Skeleton height={40} />
-              <Skeleton height={6} />
             </Stack>
           ) : (
-            <Stack spacing={2}>
-              {/* Stats Row */}
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' }, gap: 2 }}>
-                <Box>
-                  <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                    Days Worked
-                  </Typography>
-                  <Typography variant="h5" fontWeight={700}>
-                    {currentTs ? Math.ceil(currentTs.total_hours / 8) : 0}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                    Total Hours
-                  </Typography>
-                  <Typography variant="h5" fontWeight={700}>
-                    {currentTs ? currentTs.total_hours : 0}h
-                  </Typography>
-                </Box>
-                <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                  <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                    Avg Daily
-                  </Typography>
-                  <Typography variant="h5" fontWeight={700}>
-                    {currentTs && currentTs.total_hours > 0 ? (currentTs.total_hours / Math.max(1, Math.ceil(currentTs.total_hours / 8))).toFixed(1) : 0}h
-                  </Typography>
-                </Box>
-                <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                  <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
-                    Progress
-                  </Typography>
-                  <Typography variant="h5" fontWeight={700}>
-                    {currentTs ? Math.round((currentTs.total_hours / 40) * 100) : 0}%
-                  </Typography>
-                </Box>
-              </Box>
-              {/* Progress Bar */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' }, gap: 2 }}>
               <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.75 }}>
-                  <Typography variant="body2" fontWeight={600}>
-                    Weekly Target
-                  </Typography>
-                  <Typography variant="caption" fontWeight={600}>
-                    {currentTs ? Math.round((currentTs.total_hours / 40) * 100) : 0}%
-                  </Typography>
-                </Box>
-                <LinearProgress
-                  variant="determinate"
-                  value={currentTs ? Math.min((currentTs.total_hours / 40) * 100, 100) : 0}
-                  sx={{ height: 8, borderRadius: 1 }}
-                />
+                <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                  Days Worked
+                </Typography>
+                <Typography variant="h5" fontWeight={700}>
+                  {currentTs ? Math.ceil(currentTs.total_hours / 8) : 0}
+                </Typography>
               </Box>
-            </Stack>
+              <Box>
+                <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                  Total Hours
+                </Typography>
+                <Typography variant="h5" fontWeight={700}>
+                  {currentTs ? currentTs.total_hours : 0}h
+                </Typography>
+              </Box>
+              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                  Avg Daily
+                </Typography>
+                <Typography variant="h5" fontWeight={700}>
+                  {currentTs && currentTs.total_hours > 0 ? (currentTs.total_hours / Math.max(1, Math.ceil(currentTs.total_hours / 8))).toFixed(1) : 0}h
+                </Typography>
+              </Box>
+              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                  Status
+                </Typography>
+                <Typography variant="h5" fontWeight={700}>
+                  {currentTs ? currentTs.status.charAt(0).toUpperCase() + currentTs.status.slice(1) : 'None'}
+                </Typography>
+              </Box>
+            </Box>
           )}
         </CardContent>
       </Card>
