@@ -1,0 +1,217 @@
+import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import AppBar from '@mui/material/AppBar';
+import Box from '@mui/material/Box';
+import Drawer from '@mui/material/Drawer';
+import IconButton from '@mui/material/IconButton';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import Divider from '@mui/material/Divider';
+import Avatar from '@mui/material/Avatar';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
+import MenuIcon from '@mui/icons-material/Menu';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import PeopleIcon from '@mui/icons-material/People';
+import EngineeringIcon from '@mui/icons-material/Engineering';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import DownloadIcon from '@mui/icons-material/Download';
+import ConstructionIcon from '@mui/icons-material/Construction';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import PersonIcon from '@mui/icons-material/Person';
+import ChecklistIcon from '@mui/icons-material/Checklist';
+
+const DRAWER_WIDTH = 240;
+
+const navItems = [
+  { label: 'Dashboard', path: '/', icon: <DashboardIcon /> },
+  { label: 'Projects', path: '/projects', icon: <EngineeringIcon /> },
+  { label: 'Employees', path: '/employees', icon: <PeopleIcon /> },
+  { label: 'My Timesheet', path: '/my-timesheet', icon: <PersonIcon /> },
+  { label: 'Timesheets', path: '/timesheets', icon: <AccessTimeIcon /> },
+  { label: 'Daily Diary', path: '/reports', icon: <AssignmentIcon /> },
+  { label: 'Prestart Checks', path: '/checklists', icon: <ChecklistIcon /> },
+  { label: 'Export', path: '/export', icon: <DownloadIcon /> },
+];
+
+interface LayoutProps {
+  children: React.ReactNode;
+}
+
+export default function Layout({ children }: LayoutProps) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleNavClick = (path: string) => {
+    navigate(path);
+    if (isMobile) setMobileOpen(false);
+  };
+
+  const drawerContent = (
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          px: 2,
+          py: 2,
+          bgcolor: 'primary.main',
+          color: 'primary.contrastText',
+        }}
+      >
+        <ConstructionIcon sx={{ fontSize: 28 }} />
+        <Box>
+          <Typography variant="subtitle1" fontWeight={700} lineHeight={1.2}>
+            BuildTrack
+          </Typography>
+          <Typography variant="caption" sx={{ opacity: 0.85 }}>
+            Construction Management
+          </Typography>
+        </Box>
+        {isMobile && (
+          <IconButton
+            sx={{ ml: 'auto', color: 'inherit' }}
+            onClick={() => setMobileOpen(false)}
+            size="small"
+          >
+            <ChevronLeftIcon />
+          </IconButton>
+        )}
+      </Box>
+
+      <Divider />
+
+      <List sx={{ flex: 1, pt: 1 }}>
+        {navItems.map((item) => {
+          const isActive = location.pathname === item.path ||
+            (item.path !== '/' && location.pathname.startsWith(item.path));
+          return (
+            <ListItem key={item.path} disablePadding sx={{ px: 1, mb: 0.5 }}>
+              <ListItemButton
+                selected={isActive}
+                onClick={() => handleNavClick(item.path)}
+                sx={{
+                  borderRadius: 2,
+                  '&.Mui-selected': {
+                    bgcolor: 'primary.main',
+                    color: 'primary.contrastText',
+                    '& .MuiListItemIcon-root': { color: 'primary.contrastText' },
+                    '&:hover': { bgcolor: 'primary.dark' },
+                  },
+                  '&:hover': { bgcolor: 'action.hover' },
+                }}
+              >
+                <ListItemIcon
+                  sx={{
+                    minWidth: 36,
+                    color: isActive ? 'inherit' : 'text.secondary',
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText
+                  primary={item.label}
+                  primaryTypographyProps={{ fontWeight: isActive ? 600 : 400, fontSize: '0.875rem' }}
+                />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
+      </List>
+
+      <Divider />
+      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.875rem' }}>
+          A
+        </Avatar>
+        <Box sx={{ overflow: 'hidden' }}>
+          <Typography variant="body2" fontWeight={600} noWrap>Admin User</Typography>
+          <Typography variant="caption" color="text.secondary" noWrap>Administrator</Typography>
+        </Box>
+      </Box>
+    </Box>
+  );
+
+  return (
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+      {/* Desktop Drawer */}
+      {!isMobile && (
+        <Drawer
+          variant="permanent"
+          sx={{
+            width: DRAWER_WIDTH,
+            flexShrink: 0,
+            '& .MuiDrawer-paper': {
+              width: DRAWER_WIDTH,
+              boxSizing: 'border-box',
+              borderRight: '1px solid',
+              borderColor: 'divider',
+            },
+          }}
+        >
+          {drawerContent}
+        </Drawer>
+      )}
+
+      {/* Mobile Drawer */}
+      {isMobile && (
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={() => setMobileOpen(false)}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box' },
+          }}
+        >
+          {drawerContent}
+        </Drawer>
+      )}
+
+      {/* Main content */}
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minWidth: 0,
+          bgcolor: 'background.default',
+        }}
+      >
+        {isMobile && (
+          <AppBar
+            position="sticky"
+            color="default"
+            sx={{ bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider' }}
+            elevation={0}
+          >
+            <Toolbar variant="dense">
+              <IconButton edge="start" onClick={() => setMobileOpen(true)} sx={{ mr: 1 }}>
+                <MenuIcon />
+              </IconButton>
+              <ConstructionIcon sx={{ color: 'primary.main', mr: 1 }} />
+              <Typography variant="h6" fontWeight={700} color="primary">
+                BuildTrack
+              </Typography>
+            </Toolbar>
+          </AppBar>
+        )}
+
+        <Box sx={{ flex: 1, p: { xs: 2, sm: 3 }, maxWidth: '100%', overflow: 'hidden' }}>
+          {children}
+        </Box>
+      </Box>
+    </Box>
+  );
+}
