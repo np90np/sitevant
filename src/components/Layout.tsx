@@ -26,6 +26,8 @@ import ConstructionIcon from '@mui/icons-material/Construction';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import PersonIcon from '@mui/icons-material/Person';
 import ChecklistIcon from '@mui/icons-material/Checklist';
+import LogoutIcon from '@mui/icons-material/Logout';
+import { useAuth } from '../lib/auth';
 
 const DRAWER_WIDTH = 240;
 
@@ -50,6 +52,11 @@ export default function Layout({ children }: LayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { employee, signOut } = useAuth();
+
+  const displayName = employee ? `${employee.first_name} ${employee.last_name}` : 'User';
+  const displayRole = employee ? employee.role.charAt(0).toUpperCase() + employee.role.slice(1) : '';
+  const displayInitials = employee ? `${employee.first_name[0] ?? ''}${employee.last_name[0] ?? ''}`.toUpperCase() : 'U';
 
   const handleNavClick = (path: string) => {
     navigate(path);
@@ -132,12 +139,15 @@ export default function Layout({ children }: LayoutProps) {
       <Divider />
       <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
         <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.875rem' }}>
-          A
+          {displayInitials}
         </Avatar>
-        <Box sx={{ overflow: 'hidden' }}>
-          <Typography variant="body2" fontWeight={600} noWrap>Admin User</Typography>
-          <Typography variant="caption" color="text.secondary" noWrap>Administrator</Typography>
+        <Box sx={{ overflow: 'hidden', flex: 1 }}>
+          <Typography variant="body2" fontWeight={600} noWrap>{displayName}</Typography>
+          <Typography variant="caption" color="text.secondary" noWrap>{displayRole}</Typography>
         </Box>
+        <IconButton size="small" onClick={signOut} title="Sign Out">
+          <LogoutIcon fontSize="small" />
+        </IconButton>
       </Box>
     </Box>
   );
