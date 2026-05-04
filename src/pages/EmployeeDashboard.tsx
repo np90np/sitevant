@@ -10,10 +10,12 @@ import Chip from '@mui/material/Chip';
 import Avatar from '@mui/material/Avatar';
 import Stack from '@mui/material/Stack';
 import Skeleton from '@mui/material/Skeleton';
+import LinearProgress from '@mui/material/LinearProgress';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import SendIcon from '@mui/icons-material/Send';
+import AddIcon from '@mui/icons-material/Add';
 import { useAuth } from '../lib/auth';
 import { supabase } from '../lib/supabase';
 import type { Timesheet, MachineChecklist, DailyReport } from '../lib/database.types';
@@ -37,23 +39,23 @@ export default function EmployeeDashboard() {
 
   const quickActions: QuickAction[] = [
     {
-      label: 'My Timesheet',
-      description: 'Log hours and submit weekly timesheets',
-      icon: <AccessTimeIcon sx={{ fontSize: 32 }} />,
+      label: 'New Timesheet',
+      description: 'Start a new weekly timesheet',
+      icon: <AddIcon sx={{ fontSize: 32 }} />,
       color: 'primary.main',
       path: '/my-timesheet',
     },
     {
-      label: 'Prestart Check',
-      description: 'Complete machine safety inspection',
-      icon: <ChecklistIcon sx={{ fontSize: 32 }} />,
+      label: 'New Checklist',
+      description: 'Start machine prestart check',
+      icon: <AddIcon sx={{ fontSize: 32 }} />,
       color: 'warning.main',
       path: '/checklists',
     },
     {
-      label: 'Daily Diary',
-      description: 'Submit site report and expenses',
-      icon: <AssignmentIcon sx={{ fontSize: 32 }} />,
+      label: 'New Daily Diary',
+      description: 'Start daily report and expenses',
+      icon: <AddIcon sx={{ fontSize: 32 }} />,
       color: 'success.main',
       path: '/reports',
     },
@@ -119,6 +121,76 @@ export default function EmployeeDashboard() {
           {format(new Date(), 'EEEE, MMMM d, yyyy')}
         </Typography>
       </Box>
+
+      {/* Timesheet Summary */}
+      <Typography variant="h6" fontWeight={600} sx={{ mb: 1.5 }}>Timesheet Summary</Typography>
+      <Grid container spacing={2} sx={{ mb: 4 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Card>
+            <CardContent sx={{ p: 2.5 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>Days Worked This Week</Typography>
+              {loading ? (
+                <Skeleton variant="text" width={60} height={44} />
+              ) : (
+                <Typography variant="h4" fontWeight={700}>
+                  {currentTs ? Math.ceil(currentTs.total_hours / 8) : 0}
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Card>
+            <CardContent sx={{ p: 2.5 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>Total Hours</Typography>
+              {loading ? (
+                <Skeleton variant="text" width={60} height={44} />
+              ) : (
+                <Typography variant="h4" fontWeight={700}>
+                  {currentTs ? currentTs.total_hours : 0}h
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Card>
+            <CardContent sx={{ p: 2.5 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>Avg Daily Hours</Typography>
+              {loading ? (
+                <Skeleton variant="text" width={60} height={44} />
+              ) : (
+                <Typography variant="h4" fontWeight={700}>
+                  {currentTs && currentTs.total_hours > 0 ? (currentTs.total_hours / Math.max(1, Math.ceil(currentTs.total_hours / 8))).toFixed(1) : 0}h
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Card>
+            <CardContent sx={{ p: 2.5 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>Target Progress</Typography>
+              {loading ? (
+                <Skeleton variant="rectangular" height={24} />
+              ) : (
+                <Box sx={{ mt: 1 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                    <Typography variant="caption" fontWeight={600}>
+                      {currentTs ? Math.round((currentTs.total_hours / 40) * 100) : 0}%
+                    </Typography>
+                  </Box>
+                  <LinearProgress
+                    variant="determinate"
+                    value={currentTs ? Math.min((currentTs.total_hours / 40) * 100, 100) : 0}
+                    sx={{ height: 6, borderRadius: 1 }}
+                  />
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
 
       {/* Quick Actions */}
       <Typography variant="h6" fontWeight={600} sx={{ mb: 1.5 }}>Quick Actions</Typography>
