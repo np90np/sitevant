@@ -124,73 +124,71 @@ export default function EmployeeDashboard() {
 
       {/* Timesheet Summary */}
       <Typography variant="h6" fontWeight={600} sx={{ mb: 1.5 }}>Timesheet Summary</Typography>
-      <Grid container spacing={2} sx={{ mb: 4 }}>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card>
-            <CardContent sx={{ p: 2.5 }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>Days Worked This Week</Typography>
-              {loading ? (
-                <Skeleton variant="text" width={60} height={44} />
-              ) : (
-                <Typography variant="h4" fontWeight={700}>
-                  {currentTs ? Math.ceil(currentTs.total_hours / 8) : 0}
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card>
-            <CardContent sx={{ p: 2.5 }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>Total Hours</Typography>
-              {loading ? (
-                <Skeleton variant="text" width={60} height={44} />
-              ) : (
-                <Typography variant="h4" fontWeight={700}>
-                  {currentTs ? currentTs.total_hours : 0}h
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card>
-            <CardContent sx={{ p: 2.5 }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>Avg Daily Hours</Typography>
-              {loading ? (
-                <Skeleton variant="text" width={60} height={44} />
-              ) : (
-                <Typography variant="h4" fontWeight={700}>
-                  {currentTs && currentTs.total_hours > 0 ? (currentTs.total_hours / Math.max(1, Math.ceil(currentTs.total_hours / 8))).toFixed(1) : 0}h
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card>
-            <CardContent sx={{ p: 2.5 }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>Target Progress</Typography>
-              {loading ? (
-                <Skeleton variant="rectangular" height={24} />
-              ) : (
-                <Box sx={{ mt: 1 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                    <Typography variant="caption" fontWeight={600}>
-                      {currentTs ? Math.round((currentTs.total_hours / 40) * 100) : 0}%
-                    </Typography>
-                  </Box>
-                  <LinearProgress
-                    variant="determinate"
-                    value={currentTs ? Math.min((currentTs.total_hours / 40) * 100, 100) : 0}
-                    sx={{ height: 6, borderRadius: 1 }}
-                  />
+      <Card sx={{ mb: 4 }}>
+        <CardContent sx={{ p: { xs: 1.5, sm: 2.5 } }}>
+          {loading ? (
+            <Stack spacing={1.5}>
+              <Skeleton height={20} />
+              <Skeleton height={40} />
+              <Skeleton height={6} />
+            </Stack>
+          ) : (
+            <Stack spacing={2}>
+              {/* Stats Row */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' }, gap: 2 }}>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                    Days Worked
+                  </Typography>
+                  <Typography variant="h5" fontWeight={700}>
+                    {currentTs ? Math.ceil(currentTs.total_hours / 8) : 0}
+                  </Typography>
                 </Box>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                    Total Hours
+                  </Typography>
+                  <Typography variant="h5" fontWeight={700}>
+                    {currentTs ? currentTs.total_hours : 0}h
+                  </Typography>
+                </Box>
+                <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                  <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                    Avg Daily
+                  </Typography>
+                  <Typography variant="h5" fontWeight={700}>
+                    {currentTs && currentTs.total_hours > 0 ? (currentTs.total_hours / Math.max(1, Math.ceil(currentTs.total_hours / 8))).toFixed(1) : 0}h
+                  </Typography>
+                </Box>
+                <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                  <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                    Progress
+                  </Typography>
+                  <Typography variant="h5" fontWeight={700}>
+                    {currentTs ? Math.round((currentTs.total_hours / 40) * 100) : 0}%
+                  </Typography>
+                </Box>
+              </Box>
+              {/* Progress Bar */}
+              <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.75 }}>
+                  <Typography variant="body2" fontWeight={600}>
+                    Weekly Target
+                  </Typography>
+                  <Typography variant="caption" fontWeight={600}>
+                    {currentTs ? Math.round((currentTs.total_hours / 40) * 100) : 0}%
+                  </Typography>
+                </Box>
+                <LinearProgress
+                  variant="determinate"
+                  value={currentTs ? Math.min((currentTs.total_hours / 40) * 100, 100) : 0}
+                  sx={{ height: 8, borderRadius: 1 }}
+                />
+              </Box>
+            </Stack>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Quick Actions */}
       <Typography variant="h6" fontWeight={600} sx={{ mb: 1.5 }}>Quick Actions</Typography>
