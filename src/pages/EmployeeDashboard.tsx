@@ -13,7 +13,6 @@ import Skeleton from '@mui/material/Skeleton';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import AssignmentIcon from '@mui/icons-material/Assignment';
-import PersonIcon from '@mui/icons-material/Person';
 import SendIcon from '@mui/icons-material/Send';
 import { useAuth } from '../lib/auth';
 import { supabase } from '../lib/supabase';
@@ -57,13 +56,6 @@ export default function EmployeeDashboard() {
       icon: <AssignmentIcon sx={{ fontSize: 32 }} />,
       color: 'success.main',
       path: '/reports',
-    },
-    {
-      label: 'My Profile',
-      description: 'View your employee details',
-      icon: <PersonIcon sx={{ fontSize: 32 }} />,
-      color: 'secondary.main',
-      path: '/employees',
     },
   ];
 
@@ -132,7 +124,7 @@ export default function EmployeeDashboard() {
       <Typography variant="h6" fontWeight={600} sx={{ mb: 1.5 }}>Quick Actions</Typography>
       <Grid container spacing={2} sx={{ mb: 4 }}>
         {quickActions.map((action) => (
-          <Grid size={{ xs: 6, md: 3 }} key={action.label}>
+          <Grid size={{ xs: 12, sm: 4 }} key={action.label}>
             <Card
               sx={{
                 cursor: 'pointer',

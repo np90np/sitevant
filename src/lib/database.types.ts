@@ -5,6 +5,9 @@ export type TimesheetStatus = 'draft' | 'submitted' | 'approved' | 'rejected';
 export type WorkType = 'ordinary' | 'overtime' | 'double_time' | 'public_holiday';
 export type ChecklistStatus = 'draft' | 'submitted' | 'flagged';
 export type ExpenseCategory = 'materials' | 'fuel' | 'hire' | 'subcontractor' | 'other';
+export type AssetType = 'plant' | 'vehicle' | 'equipment' | 'tool';
+export type AssetCondition = 'new' | 'good' | 'fair' | 'poor' | 'decommissioned';
+export type AssetStatus = 'available' | 'in_use' | 'maintenance' | 'retired';
 
 export interface Employee {
   id: string;
@@ -140,6 +143,29 @@ export interface DailyExpense {
   recorder?: Employee;
 }
 
+export interface Asset {
+  id: string;
+  name: string;
+  asset_type: AssetType;
+  serial_number: string;
+  registration: string;
+  purchase_date: string | null;
+  purchase_price: number;
+  current_value: number;
+  condition: AssetCondition;
+  status: AssetStatus;
+  assigned_project_id: string | null;
+  assigned_employee_id: string | null;
+  location: string;
+  last_service_date: string | null;
+  next_service_date: string | null;
+  notes: string;
+  created_at: string;
+  updated_at: string;
+  project?: Project;
+  employee?: Employee;
+}
+
 export type Database = {
   public: {
     Tables: {
@@ -150,6 +176,7 @@ export type Database = {
       daily_reports: { Row: DailyReport; Insert: Omit<DailyReport, 'id' | 'created_at' | 'updated_at'>; Update: Partial<DailyReport> };
       machine_checklists: { Row: MachineChecklist; Insert: Omit<MachineChecklist, 'id' | 'created_at' | 'updated_at'>; Update: Partial<MachineChecklist> };
       daily_expenses: { Row: DailyExpense; Insert: Omit<DailyExpense, 'id' | 'created_at'>; Update: Partial<DailyExpense> };
+      assets: { Row: Asset; Insert: Omit<Asset, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Asset> };
     };
   };
 };

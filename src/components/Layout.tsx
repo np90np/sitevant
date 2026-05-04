@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -27,19 +27,28 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import PersonIcon from '@mui/icons-material/Person';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import LogoutIcon from '@mui/icons-material/Logout';
+import InventoryIcon from '@mui/icons-material/Inventory2';
 import { useAuth } from '../lib/auth';
 
 const DRAWER_WIDTH = 240;
 
-const navItems = [
-  { label: 'Dashboard', path: '/', icon: <DashboardIcon /> },
-  { label: 'Projects', path: '/projects', icon: <EngineeringIcon /> },
-  { label: 'Employees', path: '/employees', icon: <PeopleIcon /> },
-  { label: 'My Timesheet', path: '/my-timesheet', icon: <PersonIcon /> },
-  { label: 'Timesheets', path: '/timesheets', icon: <AccessTimeIcon /> },
-  { label: 'Daily Diary', path: '/reports', icon: <AssignmentIcon /> },
-  { label: 'Prestart Checks', path: '/checklists', icon: <ChecklistIcon /> },
-  { label: 'Export', path: '/export', icon: <DownloadIcon /> },
+interface NavItem {
+  label: string;
+  path: string;
+  icon: React.ReactNode;
+  roles: Array<'admin' | 'manager' | 'employee'>;
+}
+
+const allNavItems: NavItem[] = [
+  { label: 'Dashboard', path: '/', icon: <DashboardIcon />, roles: ['admin', 'manager', 'employee'] },
+  { label: 'Projects', path: '/projects', icon: <EngineeringIcon />, roles: ['admin', 'manager'] },
+  { label: 'Employees', path: '/employees', icon: <PeopleIcon />, roles: ['admin', 'manager'] },
+  { label: 'Assets', path: '/assets', icon: <InventoryIcon />, roles: ['admin', 'manager'] },
+  { label: 'My Timesheet', path: '/my-timesheet', icon: <PersonIcon />, roles: ['admin', 'manager', 'employee'] },
+  { label: 'Timesheets', path: '/timesheets', icon: <AccessTimeIcon />, roles: ['admin', 'manager'] },
+  { label: 'Daily Diary', path: '/reports', icon: <AssignmentIcon />, roles: ['admin', 'manager', 'employee'] },
+  { label: 'Prestart Checks', path: '/checklists', icon: <ChecklistIcon />, roles: ['admin', 'manager', 'employee'] },
+  { label: 'Export', path: '/export', icon: <DownloadIcon />, roles: ['admin', 'manager'] },
 ];
 
 interface LayoutProps {
@@ -53,6 +62,9 @@ export default function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { employee, signOut } = useAuth();
+
+  const role = employee?.role ?? 'employee';
+  const navItems = useMemo(() => allNavItems.filter((item) => item.roles.includes(role)), [role]);
 
   const displayName = employee ? `${employee.first_name} ${employee.last_name}` : 'User';
   const displayRole = employee ? employee.role.charAt(0).toUpperCase() + employee.role.slice(1) : '';

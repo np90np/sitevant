@@ -16,6 +16,7 @@ import MyTimesheet from './pages/MyTimesheet';
 import DailyReports from './pages/DailyReports';
 import MachineChecklists from './pages/MachineChecklists';
 import Export from './pages/Export';
+import Assets from './pages/Assets';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -27,6 +28,12 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
   if (!user) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { employee } = useAuth();
+  if (employee?.role === 'employee') return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 
@@ -43,13 +50,14 @@ function AppRoutes() {
             <Layout>
               <Routes>
                 <Route path="/" element={employee?.role === 'employee' ? <EmployeeDashboard /> : <Dashboard />} />
-                <Route path="/projects" element={<Projects />} />
-                <Route path="/employees" element={<Employees />} />
+                <Route path="/projects" element={<AdminRoute><Projects /></AdminRoute>} />
+                <Route path="/employees" element={<AdminRoute><Employees /></AdminRoute>} />
+                <Route path="/assets" element={<AdminRoute><Assets /></AdminRoute>} />
                 <Route path="/my-timesheet" element={<MyTimesheet />} />
-                <Route path="/timesheets" element={<Timesheets />} />
+                <Route path="/timesheets" element={<AdminRoute><Timesheets /></AdminRoute>} />
                 <Route path="/reports" element={<DailyReports />} />
                 <Route path="/checklists" element={<MachineChecklists />} />
-                <Route path="/export" element={<Export />} />
+                <Route path="/export" element={<AdminRoute><Export /></AdminRoute>} />
               </Routes>
             </Layout>
           </ProtectedRoute>
