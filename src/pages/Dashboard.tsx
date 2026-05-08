@@ -7,6 +7,7 @@ import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
 import Skeleton from '@mui/material/Skeleton';
 import Avatar from '@mui/material/Avatar';
+import Stack from '@mui/material/Stack';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
@@ -19,6 +20,9 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PendingIcon from '@mui/icons-material/Pending';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import BusinessIcon from '@mui/icons-material/Business';
+import StorageIcon from '@mui/icons-material/Storage';
+import Button from '@mui/material/Button';
 import { supabase } from '../lib/supabase';
 import type { Project, Timesheet } from '../lib/database.types';
 import { format, startOfWeek } from 'date-fns';
@@ -317,6 +321,54 @@ export default function Dashboard() {
               <Typography variant="caption" sx={{ opacity: 0.9 }}>
                 Export approved timesheets as CSV for direct import into MYOB AccountRight.
               </Typography>
+            </CardContent>
+          </Card>
+
+          {/* Clients Card */}
+          <Card sx={{ mt: 2 }}>
+            <CardContent sx={{ p: 2.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <BusinessIcon sx={{ color: 'primary.main', mr: 1 }} />
+                <Typography variant="h6" fontWeight={600}>
+                  Client Management
+                </Typography>
+              </Box>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                View and manage client information across all projects.
+              </Typography>
+              <Button variant="outlined" size="small" fullWidth component="a" href="/clients">
+                Manage Clients
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Database Card */}
+          <Card sx={{ mt: 2 }}>
+            <CardContent sx={{ p: 2.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <StorageIcon sx={{ color: 'success.main', mr: 1 }} />
+                <Typography variant="h6" fontWeight={600}>
+                  Database
+                </Typography>
+              </Box>
+              <Stack spacing={0.75}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="caption" color="text.secondary">Employees</Typography>
+                  <Typography variant="body2" fontWeight={600}>{stats.totalEmployees}</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="caption" color="text.secondary">Projects</Typography>
+                  <Typography variant="body2" fontWeight={600}>{stats.activeProjects}</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="caption" color="text.secondary">Pending Timesheets</Typography>
+                  <Typography variant="body2" fontWeight={600}>{stats.pendingTimesheets}</Typography>
+                </Box>
+                <Divider sx={{ my: 1 }} />
+                <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                  Powered by Supabase
+                </Typography>
+              </Stack>
             </CardContent>
           </Card>
         </Grid>

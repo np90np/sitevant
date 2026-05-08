@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import EmployeeDashboard from './pages/EmployeeDashboard';
 import Employees from './pages/Employees';
 import Projects from './pages/Projects';
+import Clients from './pages/Clients';
 import Timesheets from './pages/Timesheets';
 import MyTimesheet from './pages/MyTimesheet';
 import DailyReports from './pages/DailyReports';
@@ -51,6 +52,7 @@ function AppRoutes() {
               <Routes>
                 <Route path="/" element={employee?.role === 'employee' ? <EmployeeDashboard /> : <Dashboard />} />
                 <Route path="/projects" element={<AdminRoute><Projects /></AdminRoute>} />
+                <Route path="/clients" element={<AdminRoute><Clients /></AdminRoute>} />
                 <Route path="/employees" element={<AdminRoute><Employees /></AdminRoute>} />
                 <Route path="/assets" element={<AdminRoute><Assets /></AdminRoute>} />
                 <Route path="/my-timesheet" element={<MyTimesheet />} />

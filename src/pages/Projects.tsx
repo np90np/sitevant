@@ -59,6 +59,7 @@ const emptyForm = {
   city: '',
   state: '',
   postcode: '',
+  cost_code: '',
   status: 'planning' as ProjectStatus,
   budget: '',
   contract_value: '',
@@ -122,6 +123,7 @@ export default function Projects() {
       city: proj.city,
       state: proj.state,
       postcode: proj.postcode,
+      cost_code: proj.cost_code ?? '',
       status: proj.status,
       budget: proj.budget.toString(),
       contract_value: proj.contract_value.toString(),
@@ -148,6 +150,7 @@ export default function Projects() {
       city: form.city,
       state: form.state,
       postcode: form.postcode,
+      cost_code: form.cost_code,
       status: form.status,
       budget: parseFloat(form.budget) || 0,
       contract_value: parseFloat(form.contract_value) || 0,
@@ -293,6 +296,13 @@ export default function Projects() {
                         </Typography>
                       </Box>
                     )}
+                    {project.cost_code && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="caption" fontWeight={600} sx={{ bgcolor: 'primary.lighter', px: 1, py: 0.5, borderRadius: 1, color: 'primary.main' }}>
+                          {project.cost_code}
+                        </Typography>
+                      </Box>
+                    )}
                     {project.start_date && (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <CalendarTodayIcon sx={{ fontSize: 16, color: 'text.disabled' }} />
@@ -368,7 +378,7 @@ export default function Projects() {
               <TextField label="Description" fullWidth multiline rows={2} value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })} />
             </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
+            <Grid size={{ xs: 12, sm: 3 }}>
               <TextField label="Status" select fullWidth value={form.status}
                 onChange={(e) => setForm({ ...form, status: e.target.value as ProjectStatus })}>
                 <MenuItem value="planning">Planning</MenuItem>
@@ -377,12 +387,17 @@ export default function Projects() {
                 <MenuItem value="completed">Completed</MenuItem>
               </TextField>
             </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
+            <Grid size={{ xs: 12, sm: 3 }}>
+              <TextField label="Cost Code" fullWidth value={form.cost_code}
+                onChange={(e) => setForm({ ...form, cost_code: e.target.value })}
+                placeholder="e.g. RSC-001" />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 3 }}>
               <TextField label="Contract Value ($)" type="number" fullWidth value={form.contract_value}
                 onChange={(e) => setForm({ ...form, contract_value: e.target.value })}
                 InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />
             </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
+            <Grid size={{ xs: 12, sm: 3 }}>
               <TextField label="Budget ($)" type="number" fullWidth value={form.budget}
                 onChange={(e) => setForm({ ...form, budget: e.target.value })}
                 InputProps={{ startAdornment: <InputAdornment position="start">$</InputAdornment> }} />

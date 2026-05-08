@@ -28,6 +28,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import LogoutIcon from '@mui/icons-material/Logout';
 import InventoryIcon from '@mui/icons-material/Inventory2';
+import BusinessIcon from '@mui/icons-material/Business';
 import { useAuth } from '../lib/auth';
 
 const DRAWER_WIDTH = 240;
@@ -42,6 +43,7 @@ interface NavItem {
 const allNavItems: NavItem[] = [
   { label: 'Dashboard', path: '/', icon: <DashboardIcon />, roles: ['admin', 'manager', 'employee'] },
   { label: 'Projects', path: '/projects', icon: <EngineeringIcon />, roles: ['admin', 'manager'] },
+  { label: 'Clients', path: '/clients', icon: <BusinessIcon />, roles: ['admin', 'manager'] },
   { label: 'Employees', path: '/employees', icon: <PeopleIcon />, roles: ['admin', 'manager'] },
   { label: 'Assets', path: '/assets', icon: <InventoryIcon />, roles: ['admin', 'manager'] },
   { label: 'My Timesheet', path: '/my-timesheet', icon: <PersonIcon />, roles: ['admin', 'manager', 'employee'] },
