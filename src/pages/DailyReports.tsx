@@ -143,11 +143,12 @@ export default function DailyReports() {
   const openCreate = () => {
     setEditing(null);
     setForm({ ...emptyForm });
+    setExpenses([]);
     setError('');
     setDialogOpen(true);
   };
 
-  const openEdit = (report: DailyReport) => {
+  const openEdit = async (report: DailyReport) => {
     setEditing(report);
     setForm({
       project_id: report.project_id,
@@ -165,6 +166,16 @@ export default function DailyReports() {
       is_complete: report.is_complete,
     });
     setError('');
+    setExpensesLoading(true);
+
+    const expRes = await supabase
+      .from('daily_expenses')
+      .select('*')
+      .eq('daily_report_id', report.id)
+      .order('category');
+
+    setExpenses((expRes.data as DailyExpense[]) ?? []);
+    setExpensesLoading(false);
     setDialogOpen(true);
   };
 
@@ -379,7 +390,7 @@ export default function DailyReports() {
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle fontWeight={600}>{editing ? 'Edit Daily Diary' : 'New Daily Diary'}</DialogTitle>
-        <DialogContent dividers>
+        <DialogContent dividers sx={{ maxHeight: '70vh', overflowY: 'auto' }}>
           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, sm: 4 }}>
@@ -434,6 +445,64 @@ export default function DailyReports() {
               <TextField label="Safety Incidents" fullWidth value={form.safety_incidents}
                 onChange={(e) => setForm({ ...form, safety_incidents: e.target.value })} placeholder="None, or describe any incidents" />
             </Grid>
+
+            {/* Expenses Section */}
+            <Grid size={12}>
+              <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1, p: 2, bgcolor: 'background.paper' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <AttachMoneyIcon sx={{ color: 'primary.main' }} />
+                    <Typography variant="subtitle1" fontWeight={600}>Expenses</Typography>
+                    {editing && expenses.length > 0 && (
+                      <Chip label={`$${expenses.reduce((sum, e) => sum + e.amount, 0).toFixed(2)}`} color="primary" size="small" />
+                    )}
+                  </Box>
+                  <Button size="small" variant="outlined" startIcon={<AddIcon />} onClick={openAddExpense}>
+                    Add Expense
+                  </Button>
+                </Box>
+
+                {editing && expenses.length > 0 ? (
+                  <TableContainer>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Category</TableCell>
+                          <TableCell>Description</TableCell>
+                          <TableCell align="right">Amount</TableCell>
+                          <TableCell align="right">Actions</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {expenses.map((exp) => (
+                          <TableRow key={exp.id} hover>
+                            <TableCell>
+                              <Chip label={categoryLabel[exp.category]} color={categoryColor[exp.category]} size="small" />
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2">{exp.description}</Typography>
+                            </TableCell>
+                            <TableCell align="right">
+                              <Typography variant="body2" fontWeight={600}>${exp.amount.toFixed(2)}</Typography>
+                            </TableCell>
+                            <TableCell align="right">
+                              <IconButton size="small" color="error" onClick={() => deleteExpense(exp.id)}>
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                ) : (
+                  <Typography variant="body2" color="text.secondary" textAlign="center" py={2}>
+                    {editing ? 'No expenses recorded yet.' : 'Expenses will be added after saving the report.'}
+                  </Typography>
+                )}
+              </Box>
+            </Grid>
+
             <Grid size={12}>
               <Button
                 variant={form.is_complete ? 'contained' : 'outlined'}
