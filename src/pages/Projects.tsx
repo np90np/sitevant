@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
@@ -19,6 +20,7 @@ import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
 import Alert from '@mui/material/Alert';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import AddIcon from '@mui/icons-material/Add';
@@ -29,6 +31,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PersonIcon from '@mui/icons-material/Person';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import GridViewIcon from '@mui/icons-material/GridView';
 import { supabase } from '../lib/supabase';
@@ -69,6 +72,7 @@ const emptyForm = {
 };
 
 export default function Projects() {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -320,6 +324,9 @@ export default function Projects() {
                   </Stack>
                 </CardContent>
                 <CardActions sx={{ px: 2, pb: 2 }}>
+                  <Button size="small" startIcon={<AssignmentIcon />} onClick={() => navigate(`/reports?project=${project.id}`)}>
+                    Daily Diary
+                  </Button>
                   <Button size="small" startIcon={<EditIcon />} onClick={() => openEdit(project)}>
                     Edit
                   </Button>
@@ -354,6 +361,11 @@ export default function Projects() {
                     </Typography>
                   )}
                   <Chip label={statusLabel[project.status]} color={statusColor[project.status]} size="small" />
+                  <Tooltip title="Daily Diary">
+                    <IconButton size="small" onClick={() => navigate(`/reports?project=${project.id}`)}>
+                      <AssignmentIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
                   <IconButton size="small" onClick={() => openEdit(project)}>
                     <EditIcon fontSize="small" />
                   </IconButton>

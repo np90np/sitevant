@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
@@ -83,6 +84,7 @@ const emptyExpense = {
 };
 
 export default function DailyReports() {
+  const [searchParams] = useSearchParams();
   const [reports, setReports] = useState<DailyReport[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -122,7 +124,11 @@ export default function DailyReports() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => {
+    fetchAll();
+    const projectParam = searchParams.get('project');
+    if (projectParam) setProjectFilter(projectParam);
+  }, []);
 
   const filtered = reports.filter((r) => {
     const q = search.toLowerCase();
