@@ -32,6 +32,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import ReceiptIcon from '@mui/icons-material/Receipt';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import GridViewIcon from '@mui/icons-material/GridView';
 import { supabase } from '../lib/supabase';
@@ -71,10 +72,15 @@ const emptyForm = {
   manager_id: '',
 };
 
+interface ProjectCosts {
+  [projectId: string]: { timesheetCost: number; expenseCost: number };
+}
+
 export default function Projects() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [projectCosts, setProjectCosts] = useState<ProjectCosts>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | 'all'>('all');
@@ -85,14 +91,66 @@ export default function Projects() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  const fetchProjectCosts = async (projectIds: string[], empData: Employee[] = employees) => {
+    if (projectIds.length === 0 || empData.length === 0) return;
+
+    const costs: ProjectCosts = {};
+
+    for (const projectId of projectIds) {
+      try {
+        const [timesheetEntriesRes, expensesRes] = await Promise.all([
+          supabase
+            .from('timesheet_entries')
+            .select('hours, timesheet:timesheets(employee_id)')
+            .eq('project_id', projectId),
+          supabase
+            .from('daily_expenses')
+            .select('amount')
+            .eq('project_id', projectId),
+        ]);
+
+        let timesheetCost = 0;
+
+        if (timesheetEntriesRes.data && timesheetEntriesRes.data.length > 0) {
+          for (const entry of timesheetEntriesRes.data as any) {
+            const timesheet = entry.timesheet;
+            if (timesheet && timesheet.employee_id) {
+              const employee = empData.find((e) => e.id === timesheet.employee_id);
+              if (employee) {
+                timesheetCost += (entry.hours || 0) * employee.hourly_rate;
+              }
+            }
+          }
+        }
+
+        const expenseCost = (expensesRes.data ?? []).reduce((sum: number, exp: any) => sum + (exp.amount || 0), 0);
+
+        costs[projectId] = { timesheetCost, expenseCost };
+      } catch (err) {
+        console.error(`Error fetching costs for project ${projectId}:`, err);
+        costs[projectId] = { timesheetCost: 0, expenseCost: 0 };
+      }
+    }
+
+    setProjectCosts(costs);
+  };
+
   const fetchProjects = async () => {
     setLoading(true);
     const [projRes, empRes] = await Promise.all([
       supabase.from('projects').select('*').order('created_at', { ascending: false }),
-      supabase.from('employees').select('id,first_name,last_name').eq('is_active', true),
+      supabase.from('employees').select('*').eq('is_active', true),
     ]);
-    setProjects(projRes.data ?? []);
-    setEmployees(empRes.data ?? []);
+    const projectsData = projRes.data ?? [];
+    const employeesData = empRes.data ?? [];
+
+    setProjects(projectsData);
+    setEmployees(employeesData);
+
+    if (projectsData.length > 0 && employeesData.length > 0) {
+      await fetchProjectCosts((projectsData as any[]).map((p) => p.id), employeesData);
+    }
+
     setLoading(false);
   };
 
@@ -307,6 +365,22 @@ export default function Projects() {
                         </Typography>
                       </Box>
                     )}
+                    {projectCosts[project.id] && (
+                      <>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <AttachMoneyIcon sx={{ fontSize: 16, color: 'success.main' }} />
+                          <Typography variant="caption" color="success.main" fontWeight={600}>
+                            Labor: ${projectCosts[project.id].timesheetCost.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <ReceiptIcon sx={{ fontSize: 16, color: 'warning.main' }} />
+                          <Typography variant="caption" color="warning.main" fontWeight={600}>
+                            Expenses: ${projectCosts[project.id].expenseCost.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                          </Typography>
+                        </Box>
+                      </>
+                    )}
                     {project.start_date && (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <CalendarTodayIcon sx={{ fontSize: 16, color: 'text.disabled' }} />
@@ -466,6 +540,45 @@ export default function Projects() {
                 ))}
               </TextField>
             </Grid>
+
+            {editing && projectCosts[editing.id] && (projectCosts[editing.id].timesheetCost > 0 || projectCosts[editing.id].expenseCost > 0) && (
+              <>
+                <Grid size={12}><Divider /></Grid>
+                <Grid size={12}><Typography variant="subtitle2" color="text.secondary" fontWeight={600}>Current Project Costs</Typography></Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Box sx={{ p: 2, bgcolor: 'success.lighter', borderRadius: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                      <AttachMoneyIcon sx={{ color: 'success.main' }} />
+                      <Typography variant="subtitle2" fontWeight={600} color="success.main">Labor Costs</Typography>
+                    </Box>
+                    <Typography variant="h6" color="success.main">
+                      ${projectCosts[editing.id].timesheetCost.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">Based on timesheet entries and employee rates</Typography>
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Box sx={{ p: 2, bgcolor: 'warning.lighter', borderRadius: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                      <ReceiptIcon sx={{ color: 'warning.main' }} />
+                      <Typography variant="subtitle2" fontWeight={600} color="warning.main">Material & Expenses</Typography>
+                    </Box>
+                    <Typography variant="h6" color="warning.main">
+                      ${projectCosts[editing.id].expenseCost.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">From daily expense entries</Typography>
+                  </Box>
+                </Grid>
+                <Grid size={12}>
+                  <Box sx={{ p: 2, bgcolor: 'primary.lighter', borderRadius: 1 }}>
+                    <Typography variant="subtitle2" color="primary.main" fontWeight={600} sx={{ mb: 1 }}>Total Current Cost</Typography>
+                    <Typography variant="h5" fontWeight={700} color="primary.main">
+                      ${(projectCosts[editing.id].timesheetCost + projectCosts[editing.id].expenseCost).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    </Typography>
+                  </Box>
+                </Grid>
+              </>
+            )}
           </Grid>
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2 }}>
