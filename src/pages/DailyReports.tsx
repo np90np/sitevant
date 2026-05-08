@@ -30,6 +30,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import SearchIcon from '@mui/icons-material/Search';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import PeopleIcon from '@mui/icons-material/People';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -37,7 +38,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import { supabase } from '../lib/supabase';
-import type { DailyReport, DailyExpense, ExpenseCategory, Employee, Project } from '../lib/database.types';
+import type { DailyReport, DailyExpense, ExpenseCategory, Employee, Project, TimesheetEntry } from '../lib/database.types';
 import { format } from 'date-fns';
 
 const categoryLabel: Record<ExpenseCategory, string> = {
@@ -99,6 +100,7 @@ export default function DailyReports() {
 
   const [expenses, setExpenses] = useState<DailyExpense[]>([]);
   const [expensesLoading, setExpensesLoading] = useState(false);
+  const [timesheetEntries, setTimesheetEntries] = useState<TimesheetEntry[]>([]);
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
   const [expenseForm, setExpenseForm] = useState({ ...emptyExpense });
   const [expenseSaving, setExpenseSaving] = useState(false);
@@ -164,12 +166,23 @@ export default function DailyReports() {
     setViewing(report);
     setViewDialogOpen(true);
     setExpensesLoading(true);
-    const { data } = await supabase
-      .from('daily_expenses')
-      .select('*, project:projects(name), recorder:employees(first_name, last_name)')
-      .eq('daily_report_id', report.id)
-      .order('category');
-    setExpenses((data as DailyExpense[]) ?? []);
+
+    const [expRes, tsRes] = await Promise.all([
+      supabase
+        .from('daily_expenses')
+        .select('*, project:projects(name), recorder:employees(first_name, last_name)')
+        .eq('daily_report_id', report.id)
+        .order('category'),
+      supabase
+        .from('timesheet_entries')
+        .select('*, project:projects(name)')
+        .eq('project_id', report.project_id)
+        .eq('work_date', report.report_date)
+        .order('hours', { ascending: false }),
+    ]);
+
+    setExpenses((expRes.data as DailyExpense[]) ?? []);
+    setTimesheetEntries((tsRes.data as TimesheetEntry[]) ?? []);
     setExpensesLoading(false);
   };
 
@@ -579,6 +592,69 @@ export default function DailyReports() {
                             <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }} />
                             <TableCell />
                           </TableRow>
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  )}
+                </Box>
+
+                {/* Linked Timesheet Entries */}
+                <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                    <AccessTimeIcon sx={{ color: 'success.main' }} />
+                    <Typography variant="subtitle1" fontWeight={600}>Timesheet Entries</Typography>
+                    {timesheetEntries.length > 0 && (
+                      <Chip label={`${timesheetEntries.length} entries`} color="success" size="small" />
+                    )}
+                  </Box>
+
+                  {expensesLoading ? (
+                    Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} height={40} sx={{ mb: 0.5 }} />)
+                  ) : timesheetEntries.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary" textAlign="center" py={2}>
+                      No timesheet entries for this day.
+                    </Typography>
+                  ) : (
+                    <TableContainer>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Type</TableCell>
+                            <TableCell align="right">Hours</TableCell>
+                            <TableCell>Notes</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {timesheetEntries.map((entry) => (
+                            <TableRow key={entry.id} hover>
+                              <TableCell>
+                                <Chip
+                                  label={entry.work_type.charAt(0).toUpperCase() + entry.work_type.slice(1).replace(/_/g, ' ')}
+                                  size="small"
+                                  variant="outlined"
+                                />
+                              </TableCell>
+                              <TableCell align="right">
+                                <Typography variant="body2" fontWeight={600}>{entry.hours}h</Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Typography variant="caption" color="text.secondary">
+                                  {entry.description || '—'}
+                                </Typography>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          {timesheetEntries.length > 0 && (
+                            <TableRow>
+                              <TableCell />
+                              <TableCell align="right">
+                                <Typography variant="body2" fontWeight={700}>
+                                  {timesheetEntries.reduce((sum, e) => sum + e.hours, 0)}h total
+                                </Typography>
+                              </TableCell>
+                              <TableCell />
+                            </TableRow>
+                          )}
                         </TableBody>
                       </Table>
                     </TableContainer>
