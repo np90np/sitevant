@@ -42,6 +42,7 @@ export interface Project {
   status: ProjectStatus;
   budget: number;
   contract_value: number;
+  cost_code: string;
   start_date: string | null;
   end_date: string | null;
   manager_id: string | null;

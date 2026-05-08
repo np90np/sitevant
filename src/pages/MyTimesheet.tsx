@@ -91,7 +91,7 @@ export default function MyTimesheet() {
           .select('*')
           .eq('employee_id', emp.id)
           .order('week_start_date', { ascending: false }),
-        supabase.from('projects').select('id,name').eq('status', 'active'),
+        supabase.from('projects').select('id,name,cost_code').eq('status', 'active'),
       ]);
       setTimesheets(tsRes.data ?? []);
       setProjects(projRes.data ?? []);
@@ -107,7 +107,7 @@ export default function MyTimesheet() {
     setDetailOpen(true);
     const { data } = await supabase
       .from('timesheet_entries')
-      .select('*, project:projects(name)')
+      .select('*, project:projects(name,cost_code)')
       .eq('timesheet_id', ts.id)
       .order('work_date');
     setEntries((data as TimesheetEntry[]) ?? []);
@@ -351,7 +351,7 @@ export default function MyTimesheet() {
                           <Table size="small">
                             <TableHead>
                               <TableRow>
-                                <TableCell>Project</TableCell>
+                                <TableCell>Project / Code</TableCell>
                                 <TableCell>Type</TableCell>
                                 <TableCell>Hours</TableCell>
                                 <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Notes</TableCell>
@@ -361,7 +361,12 @@ export default function MyTimesheet() {
                             <TableBody>
                               {dayEntries.map((entry) => (
                                 <TableRow key={entry.id}>
-                                  <TableCell><Typography variant="body2">{entry.project?.name ?? '—'}</Typography></TableCell>
+                                  <TableCell>
+                                    <Box>
+                                      <Typography variant="body2">{entry.project?.name ?? '—'}</Typography>
+                                      {entry.project?.cost_code && <Typography variant="caption" color="text.secondary">Code: {entry.project.cost_code}</Typography>}
+                                    </Box>
+                                  </TableCell>
                                   <TableCell><Chip label={workTypeLabel[entry.work_type]} size="small" variant="outlined" /></TableCell>
                                   <TableCell sx={{ fontWeight: 600 }}>{entry.hours}h</TableCell>
                                   <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}><Typography variant="caption" color="text.secondary">{entry.description || '—'}</Typography></TableCell>
@@ -416,7 +421,14 @@ export default function MyTimesheet() {
               value={entryForm.project_id}
               onChange={(e) => setEntryForm({ ...entryForm, project_id: e.target.value })}
             >
-              {projects.map((p) => <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>)}
+              {projects.map((p) => (
+                <MenuItem key={p.id} value={p.id}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+                    <span>{p.name}</span>
+                    {p.cost_code && <Typography variant="caption" sx={{ color: 'text.secondary' }}>Code: {p.cost_code}</Typography>}
+                  </Box>
+                </MenuItem>
+              ))}
             </TextField>
             <TextField
               label="Hours"
