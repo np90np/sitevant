@@ -64,6 +64,7 @@ export default function MyTimesheet() {
     work_date: '',
     hours: '',
     work_type: 'ordinary' as WorkType,
+    break_minutes: '0',
     description: '',
   });
   const [saving, setSaving] = useState(false);
@@ -121,6 +122,7 @@ export default function MyTimesheet() {
       work_date: defaultDate ?? '',
       hours: '8',
       work_type: 'ordinary',
+      break_minutes: '0',
       description: '',
     });
     setError('');
@@ -134,6 +136,7 @@ export default function MyTimesheet() {
       work_date: entry.work_date,
       hours: entry.hours.toString(),
       work_type: entry.work_type,
+      break_minutes: (entry.break_minutes ?? 0).toString(),
       description: entry.description,
     });
     setError('');
@@ -151,6 +154,7 @@ export default function MyTimesheet() {
       project_id: entryForm.project_id || null,
       work_date: entryForm.work_date,
       hours: parseFloat(entryForm.hours),
+      break_minutes: parseInt(entryForm.break_minutes),
       work_type: entryForm.work_type,
       description: entryForm.description,
     };
@@ -438,6 +442,14 @@ export default function MyTimesheet() {
               inputProps={{ min: 0, max: 24, step: 0.5 }}
               value={entryForm.hours}
               onChange={(e) => setEntryForm({ ...entryForm, hours: e.target.value })}
+            />
+            <TextField
+              label="Break Time (minutes)"
+              type="number"
+              fullWidth
+              inputProps={{ min: 0, max: 480 }}
+              value={entryForm.break_minutes}
+              onChange={(e) => setEntryForm({ ...entryForm, break_minutes: e.target.value })}
             />
             <TextField
               label="Work Type"
