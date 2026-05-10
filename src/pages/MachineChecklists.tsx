@@ -319,7 +319,7 @@ export default function MachineChecklists() {
               </TextField>
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
-              <TextField label="Machine (Asset)" select fullWidth value={form.asset_id}
+              <TextField label="Machine (Asset)" select required fullWidth value={form.asset_id}
                 onChange={(e) => {
                   const asset = assets.find(a => a.id === e.target.value);
                   setForm({ ...form, asset_id: e.target.value, machine_name: asset?.name || form.machine_name });
@@ -331,10 +331,6 @@ export default function MachineChecklists() {
                     <MenuItem key={asset.id} value={asset.id}>{asset.name}</MenuItem>
                   ))}
               </TextField>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <TextField label="Machine Name" required fullWidth value={form.machine_name}
-                onChange={(e) => setForm({ ...form, machine_name: e.target.value })} placeholder="e.g. CAT 320 Excavator" />
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
               <TextField label="Hours Reading" type="number" fullWidth value={form.hours_reading}

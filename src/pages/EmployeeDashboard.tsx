@@ -10,6 +10,11 @@ import Chip from '@mui/material/Chip';
 import Avatar from '@mui/material/Avatar';
 import Stack from '@mui/material/Stack';
 import Skeleton from '@mui/material/Skeleton';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import TextField from '@mui/material/TextField';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import AssignmentIcon from '@mui/icons-material/Assignment';
@@ -35,6 +40,10 @@ export default function EmployeeDashboard() {
   const [myTimesheets, setMyTimesheets] = useState<Timesheet[]>([]);
   const [myChecklists, setMyChecklists] = useState<MachineChecklist[]>([]);
   const [myReports, setMyReports] = useState<DailyReport[]>([]);
+  const [timesheetDialogOpen, setTimesheetDialogOpen] = useState(false);
+  const [checklistDialogOpen, setChecklistDialogOpen] = useState(false);
+  const [newTimesheetWeek, setNewTimesheetWeek] = useState(format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'));
+  const [newChecklistData, setNewChecklistData] = useState({ projectId: '', date: format(new Date(), 'yyyy-MM-dd') });
 
   const quickActions: QuickAction[] = [
     {
@@ -50,13 +59,6 @@ export default function EmployeeDashboard() {
       icon: <AddIcon sx={{ fontSize: 32 }} />,
       color: 'warning.main',
       path: '/checklists',
-    },
-    {
-      label: 'New Daily Diary',
-      description: 'Start daily report and expenses',
-      icon: <AddIcon sx={{ fontSize: 32 }} />,
-      color: 'success.main',
-      path: '/reports',
     },
   ];
 
@@ -183,7 +185,15 @@ export default function EmployeeDashboard() {
                   boxShadow: 4,
                 },
               }}
-              onClick={() => navigate(action.path)}
+              onClick={() => {
+                if (action.label === 'New Timesheet') {
+                  setTimesheetDialogOpen(true);
+                } else if (action.label === 'New Checklist') {
+                  setChecklistDialogOpen(true);
+                } else {
+                  navigate(action.path);
+                }
+              }}
             >
               <CardContent sx={{ p: 2.5, textAlign: 'center' }}>
                 <Avatar
@@ -366,6 +376,59 @@ export default function EmployeeDashboard() {
           )}
         </CardContent>
       </Card>
+
+      {/* New Timesheet Dialog */}
+      <Dialog open={timesheetDialogOpen} onClose={() => setTimesheetDialogOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle fontWeight={600}>New Timesheet Week</DialogTitle>
+        <DialogContent dividers>
+          <TextField
+            label="Week Starting (Monday)"
+            type="date"
+            required
+            fullWidth
+            value={newTimesheetWeek}
+            onChange={(e) => setNewTimesheetWeek(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button onClick={() => setTimesheetDialogOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={() => {
+            navigate('/my-timesheet');
+            setTimesheetDialogOpen(false);
+          }}>
+            Create
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* New Checklist Dialog */}
+      <Dialog open={checklistDialogOpen} onClose={() => setChecklistDialogOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle fontWeight={600}>New Machine Checklist</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label="Inspection Date"
+              type="date"
+              required
+              fullWidth
+              value={newChecklistData.date}
+              onChange={(e) => setNewChecklistData({ ...newChecklistData, date: e.target.value })}
+              InputLabelProps={{ shrink: true }}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button onClick={() => setChecklistDialogOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={() => {
+            navigate('/checklists');
+            setChecklistDialogOpen(false);
+          }}>
+            Create
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
