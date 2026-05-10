@@ -27,7 +27,8 @@ import SendIcon from '@mui/icons-material/Send';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { supabase } from '../lib/supabase';
-import type { Timesheet, TimesheetEntry, TimesheetStatus, Employee, Project, WorkType } from '../lib/database.types';
+import { useAuth } from '../lib/auth';
+import type { Timesheet, TimesheetEntry, TimesheetStatus, Project, WorkType } from '../lib/database.types';
 import { format, startOfWeek, addDays } from 'date-fns';
 
 const statusColor: Record<TimesheetStatus, 'default' | 'warning' | 'success' | 'error'> = {
@@ -47,7 +48,7 @@ const workTypeLabel: Record<WorkType, string> = {
 const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export default function MyTimesheet() {
-  const [employee, setEmployee] = useState<Employee | null>(null);
+  const { employee: authEmployee } = useAuth();
   const [timesheets, setTimesheets] = useState<Timesheet[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,22 +76,12 @@ export default function MyTimesheet() {
 
   const fetchAll = async () => {
     setLoading(true);
-    const { data: empData } = await supabase
-      .from('employees')
-      .select('*')
-      .eq('is_active', true)
-      .limit(1)
-      .maybeSingle();
-
-    const emp = empData as Employee | null;
-    setEmployee(emp);
-
-    if (emp) {
+    if (authEmployee) {
       const [tsRes, projRes] = await Promise.all([
         supabase
           .from('timesheets')
           .select('*')
-          .eq('employee_id', emp.id)
+          .eq('employee_id', authEmployee.id)
           .order('week_start_date', { ascending: false }),
         supabase.from('projects').select('id,name,cost_code').eq('status', 'active'),
       ]);
@@ -100,7 +91,7 @@ export default function MyTimesheet() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => { fetchAll(); }, [authEmployee]);
 
   const openTimesheet = async (ts: Timesheet) => {
     setSelectedTs(ts);
@@ -196,10 +187,10 @@ export default function MyTimesheet() {
   };
 
   const createTimesheet = async () => {
-    if (!employee) return;
+    if (!authEmployee) return;
     setSaving(true);
     const { error: err } = await (supabase.from('timesheets') as any).insert({
-      employee_id: employee.id,
+      employee_id: authEmployee.id,
       week_start_date: newTsWeek,
       status: 'draft',
       total_hours: 0,
@@ -238,7 +229,7 @@ export default function MyTimesheet() {
         </Button>
       </Box>
 
-      {!employee && !loading && (
+      {!authEmployee && !loading && (
         <Alert severity="warning" sx={{ mb: 2 }}>
           No employee profile found. Please ask your administrator to add you as an employee first.
         </Alert>
