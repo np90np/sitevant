@@ -166,11 +166,14 @@ export default function EmployeeDashboard() {
       <Typography variant="h6" fontWeight={600} sx={{ mb: 1.5 }}>Quick Actions</Typography>
       <Grid container spacing={2} sx={{ mb: 4 }}>
         {quickActions.map((action) => (
-          <Grid size={{ xs: 12, sm: 4 }} key={action.label}>
+          <Grid size={{ xs: 6, sm: 4 }} key={action.label}>
             <Card
               sx={{
                 cursor: 'pointer',
                 transition: 'transform 0.15s, box-shadow 0.15s',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
                 '&:hover': {
                   transform: 'translateY(-2px)',
                   boxShadow: 4,
@@ -186,22 +189,22 @@ export default function EmployeeDashboard() {
                 }
               }}
             >
-              <CardContent sx={{ p: 2.5, textAlign: 'center' }}>
+              <CardContent sx={{ p: { xs: 1.5, sm: 2.5 }, textAlign: 'center', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                 <Avatar
                   sx={{
                     bgcolor: action.color,
-                    width: 56,
-                    height: 56,
+                    width: { xs: 44, sm: 56 },
+                    height: { xs: 44, sm: 56 },
                     mx: 'auto',
-                    mb: 1.5,
+                    mb: { xs: 1, sm: 1.5 },
                   }}
                 >
                   {action.icon}
                 </Avatar>
-                <Typography variant="subtitle2" fontWeight={700}>
+                <Typography variant="subtitle2" fontWeight={700} sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                   {action.label}
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' }, mt: 0.5 }}>
                   {action.description}
                 </Typography>
               </CardContent>
