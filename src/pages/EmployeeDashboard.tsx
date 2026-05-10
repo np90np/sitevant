@@ -17,12 +17,11 @@ import DialogActions from '@mui/material/DialogActions';
 import TextField from '@mui/material/TextField';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ChecklistIcon from '@mui/icons-material/Checklist';
-import AssignmentIcon from '@mui/icons-material/Assignment';
 import SendIcon from '@mui/icons-material/Send';
 import AddIcon from '@mui/icons-material/Add';
 import { useAuth } from '../lib/auth';
 import { supabase } from '../lib/supabase';
-import type { Timesheet, MachineChecklist, DailyReport } from '../lib/database.types';
+import type { Timesheet, MachineChecklist } from '../lib/database.types';
 import { format, startOfWeek, addDays } from 'date-fns';
 
 interface QuickAction {
@@ -39,7 +38,6 @@ export default function EmployeeDashboard() {
   const [loading, setLoading] = useState(true);
   const [myTimesheets, setMyTimesheets] = useState<Timesheet[]>([]);
   const [myChecklists, setMyChecklists] = useState<MachineChecklist[]>([]);
-  const [myReports, setMyReports] = useState<DailyReport[]>([]);
   const [timesheetDialogOpen, setTimesheetDialogOpen] = useState(false);
   const [checklistDialogOpen, setChecklistDialogOpen] = useState(false);
   const [newTimesheetWeek, setNewTimesheetWeek] = useState(format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'));
@@ -69,7 +67,7 @@ export default function EmployeeDashboard() {
       setLoading(true);
       const empId = employee!.id;
 
-      const [tsRes, clRes, drRes] = await Promise.all([
+      const [tsRes, clRes] = await Promise.all([
         supabase
           .from('timesheets')
           .select('*')
@@ -82,17 +80,10 @@ export default function EmployeeDashboard() {
           .eq('inspected_by', empId)
           .order('inspection_date', { ascending: false })
           .limit(5),
-        supabase
-          .from('daily_reports')
-          .select('*, project:projects(name)')
-          .eq('reported_by', empId)
-          .order('report_date', { ascending: false })
-          .limit(5),
       ]);
 
       setMyTimesheets(tsRes.data ?? []);
       setMyChecklists((clRes.data as MachineChecklist[]) ?? []);
-      setMyReports((drRes.data as DailyReport[]) ?? []);
       setLoading(false);
     }
 
@@ -302,36 +293,6 @@ export default function EmployeeDashboard() {
           </Card>
         </Grid>
 
-        <Grid size={{ xs: 12, sm: 4 }}>
-          <Card>
-            <CardContent sx={{ p: 2.5 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                <AssignmentIcon sx={{ color: 'success.main' }} />
-                <Typography variant="subtitle2" fontWeight={600}>Recent Daily Reports</Typography>
-              </Box>
-              {loading ? (
-                <Skeleton height={32} />
-              ) : myReports.length === 0 ? (
-                <Typography variant="body2" color="text.secondary">No reports yet</Typography>
-              ) : (
-                <Stack spacing={0.5}>
-                  {myReports.slice(0, 3).map((dr) => (
-                    <Box key={dr.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" noWrap sx={{ flex: 1 }}>
-                        {format(new Date(dr.report_date), 'MMM d')} - {dr.project?.name ?? 'Project'}
-                      </Typography>
-                      <Chip
-                        label={dr.is_complete ? 'Done' : 'WIP'}
-                        color={dr.is_complete ? 'success' : 'warning'}
-                        size="small"
-                      />
-                    </Box>
-                  ))}
-                </Stack>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
       </Grid>
 
       {/* Timesheet History */}
