@@ -64,7 +64,6 @@ export default function MyTimesheet() {
     project_id: '',
     work_date: '',
     hours: '',
-    work_type: 'ordinary' as WorkType,
     break_minutes: '0',
     description: '',
   });
@@ -112,7 +111,6 @@ export default function MyTimesheet() {
       project_id: projects[0]?.id ?? '',
       work_date: defaultDate ?? '',
       hours: '8',
-      work_type: 'ordinary',
       break_minutes: '0',
       description: '',
     });
@@ -126,7 +124,6 @@ export default function MyTimesheet() {
       project_id: entry.project_id ?? '',
       work_date: entry.work_date,
       hours: entry.hours.toString(),
-      work_type: entry.work_type,
       break_minutes: (entry.break_minutes ?? 0).toString(),
       description: entry.description,
     });
@@ -146,7 +143,7 @@ export default function MyTimesheet() {
       work_date: entryForm.work_date,
       hours: parseFloat(entryForm.hours),
       break_minutes: parseInt(entryForm.break_minutes),
-      work_type: entryForm.work_type,
+      work_type: 'ordinary' as WorkType,
       description: entryForm.description,
     };
     let err;
@@ -442,15 +439,6 @@ export default function MyTimesheet() {
               value={entryForm.break_minutes}
               onChange={(e) => setEntryForm({ ...entryForm, break_minutes: e.target.value })}
             />
-            <TextField
-              label="Work Type"
-              select
-              fullWidth
-              value={entryForm.work_type}
-              onChange={(e) => setEntryForm({ ...entryForm, work_type: e.target.value as WorkType })}
-            >
-              {Object.entries(workTypeLabel).map(([k, v]) => <MenuItem key={k} value={k}>{v}</MenuItem>)}
-            </TextField>
             <TextField
               label="Description / Notes"
               multiline

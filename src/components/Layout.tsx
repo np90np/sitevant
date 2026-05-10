@@ -37,7 +37,7 @@ interface NavItem {
   label: string;
   path: string;
   icon: React.ReactNode;
-  roles: Array<'admin' | 'manager' | 'employee'>;
+  roles: Array<'admin' | 'manager' | 'supervisor' | 'employee'>;
 }
 
 const allNavItems: NavItem[] = [
@@ -48,7 +48,7 @@ const allNavItems: NavItem[] = [
   { label: 'Assets', path: '/assets', icon: <InventoryIcon />, roles: ['admin', 'manager'] },
   { label: 'My Timesheet', path: '/my-timesheet', icon: <PersonIcon />, roles: ['admin', 'manager', 'employee'] },
   { label: 'Timesheets', path: '/timesheets', icon: <AccessTimeIcon />, roles: ['admin', 'manager'] },
-  { label: 'Daily Diary', path: '/reports', icon: <AssignmentIcon />, roles: ['admin', 'manager', 'employee'] },
+  { label: 'Daily Diary', path: '/reports', icon: <AssignmentIcon />, roles: ['admin', 'manager', 'supervisor'] },
   { label: 'Prestart Checks', path: '/checklists', icon: <ChecklistIcon />, roles: ['admin', 'manager', 'employee'] },
   { label: 'Export', path: '/export', icon: <DownloadIcon />, roles: ['admin', 'manager'] },
 ];
