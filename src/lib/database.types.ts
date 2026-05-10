@@ -109,7 +109,9 @@ export interface MachineChecklist {
   inspection_date: string;
   machine_name: string;
   machine_id_number: string;
-  registration_number: string;
+  registration_number?: string;
+  asset_id?: string;
+  category?: string;
   hours_reading: number;
   status: ChecklistStatus;
   items: ChecklistItem[];

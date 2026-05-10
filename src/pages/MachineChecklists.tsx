@@ -32,7 +32,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
 import EngineeringIcon from '@mui/icons-material/Engineering';
 import { supabase } from '../lib/supabase';
-import type { MachineChecklist, ChecklistItem, ChecklistStatus, Employee, Project } from '../lib/database.types';
+import type { MachineChecklist, ChecklistItem, ChecklistStatus, Employee, Project, Asset } from '../lib/database.types';
 import { format } from 'date-fns';
 
 const statusColor: Record<ChecklistStatus, 'default' | 'warning' | 'error'> = {
@@ -70,7 +70,8 @@ const emptyForm = {
   inspection_date: format(new Date(), 'yyyy-MM-dd'),
   machine_name: '',
   machine_id_number: '',
-  registration_number: '',
+  asset_id: '',
+  category: '',
   hours_reading: '',
   notes: '',
 };
@@ -79,6 +80,7 @@ export default function MachineChecklists() {
   const [checklists, setChecklists] = useState<MachineChecklist[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
@@ -93,17 +95,19 @@ export default function MachineChecklists() {
 
   const fetchAll = async () => {
     setLoading(true);
-    const [clRes, empRes, projRes] = await Promise.all([
+    const [clRes, empRes, projRes, assetRes] = await Promise.all([
       supabase
         .from('machine_checklists')
         .select('*, project:projects(name), inspector:employees(first_name, last_name)')
         .order('inspection_date', { ascending: false }),
       supabase.from('employees').select('id,first_name,last_name').eq('is_active', true),
       supabase.from('projects').select('id,name').in('status', ['active', 'planning']),
+      supabase.from('assets').select('*').in('status', ['available', 'in_use', 'maintenance']),
     ]);
     setChecklists((clRes.data as MachineChecklist[]) ?? []);
     setEmployees(empRes.data ?? []);
     setProjects(projRes.data ?? []);
+    setAssets(assetRes.data ?? []);
     setLoading(false);
   };
 
@@ -113,8 +117,8 @@ export default function MachineChecklists() {
     const q = search.toLowerCase();
     return (
       cl.machine_name.toLowerCase().includes(q) ||
-      cl.machine_id_number.toLowerCase().includes(q) ||
-      cl.registration_number.toLowerCase().includes(q) ||
+      cl.machine_id_number?.toLowerCase().includes(q) ||
+      cl.category?.toLowerCase().includes(q) ||
       cl.project?.name?.toLowerCase().includes(q)
     );
   });
@@ -135,7 +139,8 @@ export default function MachineChecklists() {
       inspection_date: cl.inspection_date,
       machine_name: cl.machine_name,
       machine_id_number: cl.machine_id_number,
-      registration_number: cl.registration_number,
+      asset_id: cl.asset_id || '',
+      category: cl.category || '',
       hours_reading: cl.hours_reading.toString(),
       notes: cl.notes,
     });
@@ -176,7 +181,8 @@ export default function MachineChecklists() {
       inspection_date: form.inspection_date,
       machine_name: form.machine_name,
       machine_id_number: form.machine_id_number,
-      registration_number: form.registration_number,
+      asset_id: form.asset_id || null,
+      category: form.category || null,
       hours_reading: parseFloat(form.hours_reading) || 0,
       status: hasFaults ? 'flagged' : 'submitted',
       items: items,
@@ -232,7 +238,7 @@ export default function MachineChecklists() {
                 <TableRow>
                   <TableCell>Date</TableCell>
                   <TableCell>Machine</TableCell>
-                  <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>ID / Rego</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Category</TableCell>
                   <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Project</TableCell>
                   <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Inspector</TableCell>
                   <TableCell>Status</TableCell>
@@ -257,7 +263,7 @@ export default function MachineChecklists() {
                   <TableRow key={cl.id} hover>
                     <TableCell><Typography variant="body2" fontWeight={600}>{format(new Date(cl.inspection_date), 'MMM d, yyyy')}</Typography></TableCell>
                     <TableCell><Typography variant="body2">{cl.machine_name}</Typography></TableCell>
-                    <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}><Typography variant="body2">{cl.machine_id_number || cl.registration_number || '—'}</Typography></TableCell>
+                    <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}><Typography variant="body2">{cl.category || '—'}</Typography></TableCell>
                     <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}><Typography variant="body2">{cl.project?.name ?? '—'}</Typography></TableCell>
                     <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}><Typography variant="body2">{cl.inspector ? `${cl.inspector.first_name} ${cl.inspector.last_name}` : '—'}</Typography></TableCell>
                     <TableCell>
@@ -302,16 +308,33 @@ export default function MachineChecklists() {
                 onChange={(e) => setForm({ ...form, inspection_date: e.target.value })} InputLabelProps={{ shrink: true }} />
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField label="Category" select fullWidth value={form.category}
+                onChange={(e) => {
+                  setForm({ ...form, category: e.target.value, asset_id: '' });
+                }}>
+                <MenuItem value="">Select Category</MenuItem>
+                {Array.from(new Set(assets.map(a => a.asset_type))).map((cat) => (
+                  <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <TextField label="Machine (Asset)" select fullWidth value={form.asset_id}
+                onChange={(e) => {
+                  const asset = assets.find(a => a.id === e.target.value);
+                  setForm({ ...form, asset_id: e.target.value, machine_name: asset?.name || form.machine_name });
+                }}>
+                <MenuItem value="">Select Machine</MenuItem>
+                {assets
+                  .filter(a => !form.category || a.asset_type === form.category)
+                  .map((asset) => (
+                    <MenuItem key={asset.id} value={asset.id}>{asset.name}</MenuItem>
+                  ))}
+              </TextField>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <TextField label="Machine Name" required fullWidth value={form.machine_name}
                 onChange={(e) => setForm({ ...form, machine_name: e.target.value })} placeholder="e.g. CAT 320 Excavator" />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <TextField label="Machine ID Number" fullWidth value={form.machine_id_number}
-                onChange={(e) => setForm({ ...form, machine_id_number: e.target.value })} />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <TextField label="Registration Number" fullWidth value={form.registration_number}
-                onChange={(e) => setForm({ ...form, registration_number: e.target.value })} />
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
               <TextField label="Hours Reading" type="number" fullWidth value={form.hours_reading}
@@ -388,8 +411,8 @@ export default function MachineChecklists() {
                   <Typography variant="h6" fontWeight={600}>{viewing.machine_name}</Typography>
                   <Typography variant="body2" color="text.secondary">
                     {format(new Date(viewing.inspection_date), 'EEEE, MMMM d, yyyy')}
+                    {viewing.category && ` • Category: ${viewing.category}`}
                     {viewing.machine_id_number && ` • ID: ${viewing.machine_id_number}`}
-                    {viewing.registration_number && ` • Rego: ${viewing.registration_number}`}
                   </Typography>
                 </Box>
                 <Chip
