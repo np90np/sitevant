@@ -63,6 +63,8 @@ export default function MyTimesheet() {
   const [entryForm, setEntryForm] = useState({
     project_id: '',
     work_date: '',
+    start_time: '',
+    end_time: '',
     hours: '',
     break_minutes: '0',
     description: '',
@@ -110,7 +112,9 @@ export default function MyTimesheet() {
     setEntryForm({
       project_id: projects[0]?.id ?? '',
       work_date: defaultDate ?? '',
-      hours: '8',
+      start_time: '',
+      end_time: '',
+      hours: '',
       break_minutes: '0',
       description: '',
     });
@@ -123,6 +127,8 @@ export default function MyTimesheet() {
     setEntryForm({
       project_id: entry.project_id ?? '',
       work_date: entry.work_date,
+      start_time: entry.start_time ?? '',
+      end_time: entry.end_time ?? '',
       hours: entry.hours.toString(),
       break_minutes: (entry.break_minutes ?? 0).toString(),
       description: entry.description,
@@ -132,8 +138,8 @@ export default function MyTimesheet() {
   };
 
   const saveEntry = async () => {
-    if (!entryForm.work_date || !entryForm.hours) {
-      setError('Date and hours are required.');
+    if (!entryForm.work_date || !entryForm.start_time || !entryForm.end_time) {
+      setError('Date, start time, and end time are required.');
       return;
     }
     setSaving(true);
@@ -141,6 +147,8 @@ export default function MyTimesheet() {
       timesheet_id: selectedTs!.id,
       project_id: entryForm.project_id || null,
       work_date: entryForm.work_date,
+      start_time: entryForm.start_time,
+      end_time: entryForm.end_time,
       hours: parseFloat(entryForm.hours),
       break_minutes: parseInt(entryForm.break_minutes),
       work_type: 'ordinary' as WorkType,
@@ -199,6 +207,28 @@ export default function MyTimesheet() {
   };
 
   const canEdit = selectedTs?.status === 'draft' || selectedTs?.status === 'rejected';
+
+  const calculateHours = (startTime: string, endTime: string, breakMinutes: number): number => {
+    if (!startTime || !endTime) return 0;
+    const [startH, startM] = startTime.split(':').map(Number);
+    const [endH, endM] = endTime.split(':').map(Number);
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    let diffMinutes = endMinutes - startMinutes;
+    if (diffMinutes < 0) diffMinutes += 24 * 60;
+    const workMinutes = diffMinutes - breakMinutes;
+    return Math.max(0, workMinutes / 60);
+  };
+
+  const handleTimeChange = (field: 'start_time' | 'end_time' | 'break_minutes', value: string) => {
+    const newForm = { ...entryForm, [field]: value };
+    if (field === 'start_time' || field === 'end_time' || field === 'break_minutes') {
+      const breakMins = parseInt(newForm.break_minutes) || 0;
+      const calculated = calculateHours(newForm.start_time, newForm.end_time, breakMins);
+      newForm.hours = calculated > 0 ? calculated.toFixed(2) : '';
+    }
+    setEntryForm(newForm);
+  };
 
   const getEntriesByDay = () => {
     if (!selectedTs) return {};
@@ -422,23 +452,43 @@ export default function MyTimesheet() {
                 </MenuItem>
               ))}
             </TextField>
-            <TextField
-              label="Hours"
-              type="number"
-              required
-              fullWidth
-              inputProps={{ min: 0, max: 24, step: 0.5 }}
-              value={entryForm.hours}
-              onChange={(e) => setEntryForm({ ...entryForm, hours: e.target.value })}
-            />
+            <Stack spacing={1.5}>
+              <Typography variant="subtitle2" fontWeight={600}>Work Hours</Typography>
+              <Stack direction="row" spacing={1.5}>
+                <TextField
+                  label="Start Time"
+                  type="time"
+                  required
+                  fullWidth
+                  value={entryForm.start_time}
+                  onChange={(e) => handleTimeChange('start_time', e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                />
+                <TextField
+                  label="Finish Time"
+                  type="time"
+                  required
+                  fullWidth
+                  value={entryForm.end_time}
+                  onChange={(e) => handleTimeChange('end_time', e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Stack>
+            </Stack>
             <TextField
               label="Break Time (minutes)"
               type="number"
               fullWidth
               inputProps={{ min: 0, max: 480 }}
               value={entryForm.break_minutes}
-              onChange={(e) => setEntryForm({ ...entryForm, break_minutes: e.target.value })}
+              onChange={(e) => handleTimeChange('break_minutes', e.target.value)}
             />
+            <Box sx={{ p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
+              <Typography variant="body2" color="text.secondary">Total Hours Worked</Typography>
+              <Typography variant="h6" fontWeight={700} color="primary.main">
+                {entryForm.hours ? `${entryForm.hours}h` : '—'}
+              </Typography>
+            </Box>
             <TextField
               label="Description / Notes"
               multiline
