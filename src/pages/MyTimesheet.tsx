@@ -206,7 +206,7 @@ export default function MyTimesheet() {
     fetchAll();
   };
 
-  const canEdit = selectedTs?.status === 'draft' || selectedTs?.status === 'rejected';
+  const canEdit = selectedTs?.status === 'draft' || selectedTs?.status === 'rejected' || selectedTs?.status === 'submitted';
 
   const calculateHours = (startTime: string, endTime: string, breakMinutes: number): number => {
     if (!startTime || !endTime) return 0;
