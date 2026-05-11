@@ -19,6 +19,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import SendIcon from '@mui/icons-material/Send';
 import AddIcon from '@mui/icons-material/Add';
+import EventNoteIcon from '@mui/icons-material/EventNote';
 import { useAuth } from '../lib/auth';
 import { supabase } from '../lib/supabase';
 import type { Timesheet, MachineChecklist } from '../lib/database.types';
@@ -42,8 +43,16 @@ export default function EmployeeDashboard() {
   const [checklistDialogOpen, setChecklistDialogOpen] = useState(false);
   const [newTimesheetWeek, setNewTimesheetWeek] = useState(format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'));
   const [newChecklistData, setNewChecklistData] = useState({ projectId: '', date: format(new Date(), 'yyyy-MM-dd') });
+  const [currentWeekLoading, setCurrentWeekLoading] = useState(false);
 
   const quickActions: QuickAction[] = [
+    {
+      label: 'Current Week',
+      description: 'Open this week\'s timesheet',
+      icon: <EventNoteIcon sx={{ fontSize: 32 }} />,
+      color: 'success.main',
+      path: 'current-week',
+    },
     {
       label: 'New Timesheet',
       description: 'Start a new weekly timesheet',
@@ -100,6 +109,40 @@ export default function EmployeeDashboard() {
     approved: 'success',
     rejected: 'error',
     flagged: 'error',
+  };
+
+  const openCurrentWeek = async () => {
+    if (!employee) return;
+    setCurrentWeekLoading(true);
+
+    const currentWeekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
+
+    // Check if current week timesheet exists
+    const { data: existingTs } = await supabase
+      .from('timesheets')
+      .select('id')
+      .eq('employee_id', employee.id)
+      .eq('week_start_date', currentWeekStart)
+      .maybeSingle();
+
+    if (existingTs) {
+      // Current week exists, navigate to timesheet
+      navigate('/my-timesheet');
+    } else {
+      // Create new timesheet for current week
+      const { error } = await (supabase.from('timesheets') as any).insert({
+        employee_id: employee.id,
+        week_start_date: currentWeekStart,
+        status: 'draft',
+        total_hours: 0,
+      });
+
+      if (!error) {
+        navigate('/my-timesheet');
+      }
+    }
+
+    setCurrentWeekLoading(false);
   };
 
   return (
@@ -169,18 +212,21 @@ export default function EmployeeDashboard() {
           <Grid size={{ xs: 6, sm: 4 }} key={action.label}>
             <Card
               sx={{
-                cursor: 'pointer',
+                cursor: action.label === 'Current Week' && currentWeekLoading ? 'not-allowed' : 'pointer',
                 transition: 'transform 0.15s, box-shadow 0.15s',
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
+                opacity: action.label === 'Current Week' && currentWeekLoading ? 0.6 : 1,
                 '&:hover': {
-                  transform: 'translateY(-2px)',
-                  boxShadow: 4,
+                  transform: action.label === 'Current Week' && currentWeekLoading ? 'none' : 'translateY(-2px)',
+                  boxShadow: action.label === 'Current Week' && currentWeekLoading ? 1 : 4,
                 },
               }}
               onClick={() => {
-                if (action.label === 'New Timesheet') {
+                if (action.label === 'Current Week') {
+                  if (!currentWeekLoading) openCurrentWeek();
+                } else if (action.label === 'New Timesheet') {
                   setTimesheetDialogOpen(true);
                 } else if (action.label === 'New Checklist') {
                   setChecklistDialogOpen(true);
